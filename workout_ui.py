@@ -15,7 +15,7 @@ async def on_ready():
     # Make sure the database file is already there. If it's not, create it
     if not os.path.isfile(config("FILENAME")) or not os.path.isfile(config("FILENAME")):
         with open(config("FILENAME"), 'w') as new_json:
-            json_dump([], new_json)
+            json_dump({}, new_json)
 
 
 @listen(CommandError, disable_default_listeners=True)  # tell the dispatcher that this replaces the default listener
