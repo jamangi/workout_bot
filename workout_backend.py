@@ -1,24 +1,24 @@
 import json
 from datetime import datetime
+from decouple import config
 
 
-def read_json(filename):
+def read_json():
     """Read all data from a JSON file.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :return: (dict) all the data that was in the JSON file
     """
+    filename = config("FILENAME")
     with open(filename, 'r') as file:
         json_data = json.load(file)
 
     return json_data
 
 
-def edit_value(filename, user_id, field, new_value,
+def edit_value(user_id, field, new_value,
                scheduled_or_unscheduled=None, workout_unixid=None, report_unixid=None):
     """Edit a value for a particular user in the JSON file.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :param user_id: (int) the Discord ID of the person whose information is being updated
     :param field: (str) the name of the field containing the value that is to be updated
     :param new_value: (any) the new value will be placed in the desired field
@@ -26,6 +26,7 @@ def edit_value(filename, user_id, field, new_value,
     :param workout_unixid: (float) if it's something inside a workout that needs to be changed, the workout's unix time
     :param report_unixid: (float) if it's something inside a report that needs to be changed, the report's unix time
     """
+    filename = config("FILENAME")
     user_id = str(user_id)
     with open(filename, 'r') as file:
         json_data = json.load(file)
@@ -40,19 +41,20 @@ def edit_value(filename, user_id, field, new_value,
                              'supplied to clarify which workout is being referred to.')
         if not report_unixid:
             json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][field] = new_value
-        else: json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][report_unixid][field] = new_value
+        else:
+            json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][report_unixid][field] = new_value
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
 
 
-def add_user(filename, user_id, user_nick):
+def add_user(user_id, user_nick):
     """Adds to the json a user that is reporting/scheduling their first workout.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :param user_id: (int) the Discord ID of the new user
     :param user_nick: (str) the Discord display name of the new user
     """
+    filename = config("FILENAME")
     with open(filename, 'r') as file:
         json_data = json.load(file)
 
@@ -62,11 +64,10 @@ def add_user(filename, user_id, user_nick):
         json.dump(json_data, file, indent=4)
 
 
-def add_scheduled_workout(filename, user_id, workout_name, days_scheduled, muscle_group=None, weights_used=None,
+def add_scheduled_workout(user_id, workout_name, days_scheduled, muscle_group=None, weights_used=None,
                           tutorial_url=None, img_url=None):
     """Adds a scheduled workout to the scheduled_workout dict within the user's entry in the users dict in the json.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :param user_id: (int) the Discord ID of the user creating the workout
     :param workout_name: (str) the name of the new workout
     :param days_scheduled: (list) a list of the days the workout should be done. ex: ["Monday", "Friday"]
@@ -75,7 +76,7 @@ def add_scheduled_workout(filename, user_id, workout_name, days_scheduled, muscl
     :param tutorial_url: (str) a link to a tutorial that shows how to do this workout properly
     :param img_url: (str) a link to an image that can be used in messages about this workout
     """
-
+    filename = config("FILENAME")
     time_now = datetime.now().timestamp()
 
     with open(filename, 'r') as file:
@@ -92,11 +93,10 @@ def add_scheduled_workout(filename, user_id, workout_name, days_scheduled, muscl
         json.dump(json_data, file, indent=4)
 
 
-def add_unscheduled_workout(filename, user_id, workout_name, muscle_group=None, weights_used=None,
+def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_used=None,
                             tutorial_url=None, img_url=None):
     """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :param user_id: (int) the Discord ID of the user reporting the workout
     :param workout_name: (str) the name of the reported workout
     :param muscle_group: (str) a description of the muscle group(s) used in this workout
@@ -104,7 +104,7 @@ def add_unscheduled_workout(filename, user_id, workout_name, muscle_group=None, 
     :param tutorial_url: (str) a link to a tutorial that shows how to do this workout properly
     :param img_url: (str) a link to an image that can be used in messages about this workout
     """
-
+    filename = config("FILENAME")
     time_now = datetime.now().timestamp()
 
     with open(filename, 'r') as file:
@@ -120,16 +120,15 @@ def add_unscheduled_workout(filename, user_id, workout_name, muscle_group=None, 
         json.dump(json_data, file, indent=4)
 
 
-def add_report(filename, user_id, workout_name, completion, comment=None):
+def add_report(user_id, workout_name, completion, comment=None):
     """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
 
-    :param filename: (str) the JSON file where the data is stored (ends with .json)
     :param user_id: (int) the Discord ID of the user reporting the workout
     :param workout_name: (str) the name of the reported workout
     :param completion: (str) whether the workout was skipped or completed, and to what degree. Options constrained
     :param comment: (str) a comment about how the workout went
     """
-
+    filename = config("FILENAME")
     time_now = datetime.now().timestamp()
 
     with open(filename, 'r') as file:
@@ -145,3 +144,27 @@ def add_report(filename, user_id, workout_name, completion, comment=None):
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
+
+
+def get_all_reports(userid):
+    """Get a list of all the reports, both scheduled and unscheduled, for the given user
+
+    :param userid: (int) the Discord id of the user who used the slash command
+    :return: (dict of dicts) all the reports the user has ever submitted
+    """
+    json_data = read_json()
+    userid = str(userid)
+
+    # Get all unscheduled reports and put them into the reports dict
+    reports = json_data[userid]['unscheduled']
+
+    # Add all scheduled reports to the reports dict
+    scheduled = json_data[userid]['scheduled']
+    for workout_id in scheduled:
+        for report_id, report_data in scheduled[workout_id]['reports']:
+            reports[report_id] = report_data
+            reports[report_id]['workout_id'] = workout_id  # add the workout id to report data for clarity
+
+    return reports
+
+
