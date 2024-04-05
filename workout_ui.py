@@ -6,6 +6,9 @@ from interactions.api.events import CommandError
 import os
 from json import dump as json_dump
 
+from workout_quickfetches import (reports_years_quickfetch, reports_months_quickfetch, reports_days_quickfetch,
+                                  reports_by_day_quickfetch, fields_in_report_quickfetch, workouts_quickfetch)
+
 
 @listen()
 async def on_ready():
@@ -41,6 +44,7 @@ base_command = SlashCommand(
 
 # -------------------------------------------------------------------------------------------------------------------- #
 """schedule_routine"""
+
 
 @base_command.subcommand(sub_cmd_name="schedule_routine",
                          sub_cmd_description="Create a workout and schedule out which days you'll do it")
@@ -94,6 +98,7 @@ async def schedule_routine(ctx: SlashContext, workout_name,
 # -------------------------------------------------------------------------------------------------------------------- #
 """report_scheduled"""
 
+
 @base_command.subcommand(sub_cmd_name="report_scheduled",
                          sub_cmd_description="Report a workout routine you've followed according to schedule")
 @slash_option(name="workout_name", description="Which scheduled workout would you like to submit a report for?",
@@ -117,6 +122,7 @@ async def report_scheduled(ctx: SlashContext, workout_name, completion, comment=
 
 # -------------------------------------------------------------------------------------------------------------------- #
 """report_unscheduled"""
+
 
 @base_command.subcommand(sub_cmd_name="report_unscheduled",
                          sub_cmd_description="Report a workout routine you didn't schedule ahead of time")
@@ -146,6 +152,7 @@ async def report_unscheduled(ctx: SlashContext, workout_name,
 
 # -------------------------------------------------------------------------------------------------------------------- #
 """edit_workout"""
+
 
 @base_command.subcommand(sub_cmd_name="edit_workout",
                          sub_cmd_description="Edit a scheduled workout routine")
@@ -204,6 +211,7 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
 # -------------------------------------------------------------------------------------------------------------------- #
 """edit_report"""
 
+
 @base_command.subcommand(sub_cmd_name="edit_report",
                          sub_cmd_description="Edit the report for a past workout session")
 @slash_option(name="year", description="What year did this session take place? (or input the word latest)",
@@ -220,7 +228,7 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
               opt_type=OptionType.STRING, required=True)
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
-async def edit_report(ctx: SlashContext, year, month, day, report_to_edit, field_to_change, new_value,
+async def edit_report(ctx: SlashContext, report_to_edit, field_to_change, new_value,
                       show_everyone=False):
     # Remember to constrain the date within the autocomplete so that future dates default to latest and dates before
     # the first recorded report are default to the oldest reports
@@ -251,8 +259,13 @@ async def reports_months_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of months in the selected year in which the user has submitted reports
-    months_list = reports_months_quickfetch(userid=int(ctx.author_id),
-                                            year=ctx.args[0])
+    try:
+        int(ctx.args[0])
+        months_list = reports_months_quickfetch(userid=int(ctx.author_id),
+                                                year=ctx.args[0])
+    except:
+        months_list = [{'name': 'latest', 'value': 'latest'}]
+
     await ctx.send(choices=months_list)
 
 
@@ -263,9 +276,14 @@ async def reports_days_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of days in the selected month of the selected year in which the user has submitted reports
-    days_list = reports_days_quickfetch(userid=int(ctx.author_id),
-                                        year=ctx.args[0],
-                                        month=ctx.args[1])
+    try:
+        int(ctx.args[1])
+        days_list = reports_days_quickfetch(userid=int(ctx.author_id),
+                                            year=ctx.args[0],
+                                            month=ctx.args[1])
+    except:
+        days_list = [{'name': 'latest', 'value': 'latest'}]
+
     await ctx.send(choices=days_list)
 
 
@@ -276,10 +294,17 @@ async def reports_by_day_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of all the reports the user has made on the selected day, and on surrounding days if convenient
-    reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
-                                        year=ctx.args[0],
-                                        month=ctx.args[1],
-                                        day=ctx.args[2])
+    try:
+        int(ctx.args[2])
+        reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
+                                            year=ctx.args[0],
+                                            month=ctx.args[1],
+                                            day=ctx.args[2])
+    except:
+        reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
+                                            year='latest',
+                                            month='latest',
+                                            day='latest')
     await ctx.send(choices=reports)
 
 
@@ -290,8 +315,14 @@ async def fields_in_report_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of fields in the selected report that the user might be able to change
-    fields = fields_in_report_quickfetch(userid=int(ctx.author_id),
-                                         report_name=ctx.args[3])
+    try:
+        report_selected = isinstance(ctx.args[3], str)
+        fields = fields_in_report_quickfetch(userid=int(ctx.author_id),
+                                             report_name=ctx.args[3])
+    except:
+        fields = [{'name': 'Error: Please delete the command and try again. Make sure you fill in all fields in order.',
+                   'value': 'error'}]
+
     await ctx.send(choices=fields)
 
 # -------------------------------------------------------------------------------------------------------------------- #
