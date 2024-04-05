@@ -164,6 +164,7 @@ def get_all_reports(userid):
         for report_id, report_data in scheduled[workout_id]['reports']:
             reports[report_id] = report_data
             reports[report_id]['workout_id'] = workout_id  # add the workout id to report data for clarity
+            reports[report_id]['workout_name'] = scheduled[workout_id]['workout_name']  # the workout's name, too
 
     return reports
 
