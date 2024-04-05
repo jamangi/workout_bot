@@ -25,13 +25,48 @@ def reports_years_quickfetch(userid):
             valid_years.append(year)
 
     # Format the list of years the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    years_strings = [str(year) for year in valid_years]
-    years_list = [{'name': 'latest', 'value': 'latest'}] + [{'name': year, 'value': year} for year in years_strings]
+    year_strings = [str(year) for year in valid_years]
+    years_list = [{'name': 'latest', 'value': 'latest'}] + [{'name': year, 'value': year} for year in year_strings]
+
     return years_list
 
 
 def reports_months_quickfetch(userid, year):
-    pass
+    """Returns a list (in quickfetch form ready for autocomplete) of every month within the selected year in which the
+    user submitted a report, whether scheduled or unscheduled.
+
+    :param userid: (int) the Discord ID of the person who used the slash command
+    :param year: (str) the year that is being queried to check for workouts
+    :return: (list of dicts) dict for every month in which there is a report. ex: {'name': '1 - January', 'value': '1''}
+    """
+    months_hash = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                   9: 'September', 10: 'October', 11: 'November', 12: 'December'}
+
+    # Get bounds of this year
+    year = int(year)
+    year_start = datetime(year, 1, 1).timestamp()
+    year_end = datetime(year + 1, 1, 1).timestamp()
+
+    # Get all the reports the user has submitted this year
+    all_reports = get_all_reports(userid)
+    report_dates = [float(report_id) for report_id in all_reports if year_start <= float(report_id) < year_end]
+
+    # Create a list of months in that year that have reports in them
+    valid_months = []
+    month = 1
+    month_start = datetime(year, month, 1).timestamp()
+    for unixtime in report_dates:
+        while unixtime > month_start:
+            month += 1
+            month_start = datetime(year, month, 1).timestamp()
+        if month not in valid_months:
+            valid_months.append(month)
+
+    # Format the list of years the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
+    months_list = ([{'name': 'latest', 'value': 'latest'}]
+                   + [{'name': f"{month} - {months_hash[month]}", 'value': str(month)} for month in valid_months])
+
+    return months_list
 
 
 def reports_days_quickfetch(userid, year, month):
