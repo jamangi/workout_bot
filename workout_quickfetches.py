@@ -45,7 +45,7 @@ def reports_months_quickfetch(userid, year):
     # Get bounds of this year
     year = int(year)
     year_start = datetime(year, 1, 1).timestamp()
-    year_end = datetime(year + 1, 1, 1).timestamp()
+    year_end = datetime(year+1, 1, 1).timestamp()
 
     # Get all the reports the user has submitted this year
     all_reports = get_all_reports(userid)
@@ -62,7 +62,7 @@ def reports_months_quickfetch(userid, year):
         if month not in valid_months:
             valid_months.append(month)
 
-    # Format the list of years the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
+    # Format the list of months the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
     months_list = ([{'name': 'latest', 'value': 'latest'}]
                    + [{'name': f"{month} - {months_hash[month]}", 'value': str(month)} for month in valid_months])
 
@@ -70,7 +70,44 @@ def reports_months_quickfetch(userid, year):
 
 
 def reports_days_quickfetch(userid, year, month):
-    pass
+    """Returns a list (in quickfetch form ready for autocomplete) of every day within the selected month in which the
+    user submitted a report, whether scheduled or unscheduled.
+
+    :param userid: (int) the Discord ID of the person who used the slash command
+    :param year: (str) the year that is being queried to check for workouts
+    :param month: (str) the month that is being queried to check for workouts
+    :return: (list of dicts) dict for every month in which there is a report. ex: {'name': '1 - January', 'value': '1''}
+    """
+    months_hash = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                   9: 'September', 10: 'October', 11: 'November', 12: 'December'}
+
+    # Get bounds of this month
+    year = int(year)
+    month = int(month)
+    month_start = datetime(year, month, 1).timestamp()
+    month_end = datetime(year, month+1, 1).timestamp()
+
+    # Get all the reports the user has submitted this month
+    all_reports = get_all_reports(userid)
+    report_dates = [float(report_id) for report_id in all_reports if month_start <= float(report_id) < month_end]
+
+    # Create a list of days in that month that have reports in them
+    valid_days = []
+    day = 1
+    day_start = datetime(year, month, 1).timestamp()
+    for unixtime in report_dates:
+        while unixtime > day_start:
+            day += 1
+            day_start = datetime(year, month, day).timestamp()
+        if day not in valid_days:
+            valid_days.append(month)
+
+    # Format the list of months the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
+    days_list = ([{'name': 'latest', 'value': 'latest'}]
+                   + [{'name': f"{day} - {months_hash[month]} {day}, {year}", 'value': str(day)}
+                      for day in valid_days])
+
+    return days_list
 
 
 def reports_by_day_quickfetch(userid, year, month, day):
@@ -83,19 +120,3 @@ def fields_in_report_quickfetch(userid, report_name):
 
 def workouts_quickfetch(userid):
     pass
-
-
-
-# choices = [SlashCommandChoice(name='latest', value='latest'),
-#            SlashCommandChoice(name='1 - January', value='1'),
-#            SlashCommandChoice(name='2 - February', value='2'),
-#            SlashCommandChoice(name='3 - March', value='3'),
-#            SlashCommandChoice(name='4 - April', value='4'),
-#            SlashCommandChoice(name='5 - May', value='5'),
-#            SlashCommandChoice(name='6 - June', value='6'),
-#            SlashCommandChoice(name='7 - July', value='7'),
-#            SlashCommandChoice(name='8 - August', value='8'),
-#            SlashCommandChoice(name='9 - September', value='9'),
-#            SlashCommandChoice(name='10 - October', value='10'),
-#            SlashCommandChoice(name='11 - November', value='11'),
-#            SlashCommandChoice(name='12 - December', value='12')])
