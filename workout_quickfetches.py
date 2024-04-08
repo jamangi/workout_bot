@@ -10,17 +10,18 @@ def reports_years_quickfetch(userid):
     :return: (list of dicts) {'name': year, 'value': year} for every year in which there is a report
     """
     # Get all the reports the user has submitted
-    all_reports = get_all_reports(userid)
+    all_reports = get_all_reports(str(userid))
     report_dates = [float(report_id) for report_id in all_reports]
+    report_dates.sort()
 
     # Create a list of years that have reports in them
     valid_years = []
-    year = 2024
-    year_start = datetime(year, 1, 1).timestamp()
+    year = 2020
+    next_year_start = datetime(year + 1, 1, 1).timestamp()
     for unixtime in report_dates:
-        while unixtime > year_start:
+        while unixtime > next_year_start:
             year += 1
-            year_start = datetime(year, 1, 1).timestamp()
+            next_year_start = datetime(year+1, 1, 1).timestamp()
         if year not in valid_years:
             valid_years.append(year)
 
@@ -48,17 +49,18 @@ def reports_months_quickfetch(userid, year):
     year_end = datetime(year+1, 1, 1).timestamp()
 
     # Get all the reports the user has submitted this year
-    all_reports = get_all_reports(userid)
+    all_reports = get_all_reports(str(userid))
     report_dates = [float(report_id) for report_id in all_reports if year_start <= float(report_id) < year_end]
+    report_dates.sort()
 
     # Create a list of months in that year that have reports in them
     valid_months = []
     month = 1
-    month_start = datetime(year, month, 1).timestamp()
+    month_end = datetime(year, month+1, 1).timestamp()
     for unixtime in report_dates:
-        while unixtime > month_start:
+        while unixtime > month_end:
             month += 1
-            month_start = datetime(year, month, 1).timestamp()
+            month_end = datetime(year, month+1, 1).timestamp()
         if month not in valid_months:
             valid_months.append(month)
 
@@ -88,24 +90,24 @@ def reports_days_quickfetch(userid, year, month):
     month_end = datetime(year, month+1, 1).timestamp()
 
     # Get all the reports the user has submitted this month
-    all_reports = get_all_reports(userid)
+    all_reports = get_all_reports(str(userid))
     report_dates = [float(report_id) for report_id in all_reports if month_start <= float(report_id) < month_end]
+    report_dates.sort()
 
     # Create a list of days in that month that have reports in them
     valid_days = []
     day = 1
-    day_start = datetime(year, month, 1).timestamp()
+    day_end = datetime(year, month, day+1).timestamp()
     for unixtime in report_dates:
-        while unixtime > day_start:
+        while unixtime > day_end:
             day += 1
-            day_start = datetime(year, month, day).timestamp()
+            day_end = datetime(year, month, day+1).timestamp()
         if day not in valid_days:
-            valid_days.append(month)
+            valid_days.append(day)
 
     # Format the list of months the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
     days_list = ([{'name': 'latest', 'value': 'latest'}]
-                   + [{'name': f"{day} - {months_hash[month]} {day}, {year}", 'value': str(day)}
-                      for day in valid_days])
+                   + [{'name': f"{day} - {months_hash[month]} {day}, {year}", 'value': str(day)} for day in valid_days])
 
     return days_list
 

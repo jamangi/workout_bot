@@ -156,10 +156,10 @@ def get_all_reports(userid):
     userid = str(userid)
 
     # Get all unscheduled reports and put them into the reports dict
-    reports = json_data[userid]['unscheduled']
+    reports = json_data['users'][userid]['unscheduled_workout']
 
     # Add all scheduled reports to the reports dict
-    scheduled = json_data[userid]['scheduled']
+    scheduled = json_data['users'][userid]['scheduled_workout']
     for workout_id in scheduled:
         for report_id, report_data in scheduled[workout_id]['reports']:
             reports[report_id] = report_data
