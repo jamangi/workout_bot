@@ -248,7 +248,12 @@ async def reports_years_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of years in which the user has submitted reports
-    years_list = reports_years_quickfetch(userid=int(ctx.author_id))
+    try:
+        years_list = reports_years_quickfetch(userid=int(ctx.author_id))
+    except KeyError:
+        years_list = [{'name': 'There are no workouts reported under your name. Get swole, then try again',
+                       'value': 'error'}]
+
     await ctx.send(choices=years_list)
 
 
