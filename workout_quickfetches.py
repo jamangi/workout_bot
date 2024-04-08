@@ -71,7 +71,7 @@ def reports_months_quickfetch(userid, year):
 
 
 def reports_days_quickfetch(userid, year, month):
-    """Returns a list (in quickfetch form ready for autocomplete) of every day within the selected month in which the
+    """Returns a list (in quickfetch form ready for autocomplete) of every day within the selected month on which the
     user submitted a report, whether scheduled or unscheduled.
 
     :param userid: (int) the Discord ID of the person who used the slash command
@@ -112,14 +112,15 @@ def reports_days_quickfetch(userid, year, month):
 
 
 def reports_by_day_quickfetch(userid, year, month, day):
-    """Returns a list (in quickfetch form ready for autocomplete) report the user has submitted on the specified day,
-    whether scheduled or unscheduled.
+    """Returns a list (in quickfetch form ready for autocomplete) of all the reports the user submitted on the
+    specified day, whether scheduled or unscheduled.
 
         :param userid: (int) the Discord ID of the person who used the slash command
         :param year: (str) the year that is being queried to check for workouts
         :param month: (str) the month that is being queried to check for workouts
         :param day: (str) the day that is being queried to check for workouts
-        :return: (list of dicts) dict for every report made that day. ex: {'name': 'Push-ups', 'value': 'Push-ups'}
+        :return: (list of dicts) dict for every report made that day. The "value" is the report id (its unix timestamp)
+                 ex: {'name': 'Push-ups', 'value': '1646880978.123'}
         """
     # Get bounds of this day
     year = int(year)
@@ -128,21 +129,53 @@ def reports_by_day_quickfetch(userid, year, month, day):
     day_start = datetime(year, month, day).timestamp()
     day_end = datetime(year, month, day+1).timestamp()
 
-    # Get the names of all the reports the user has submitted this month
+    # Get the dates of all the reports the user has submitted this month
     all_reports = get_all_reports(str(userid))
     report_dates = [float(report_id) for report_id in all_reports if day_start <= float(report_id) < day_end]
     report_dates.sort()
-    report_names = [all_reports[str(report_id)]['workout_name'] for report_id in report_dates]
 
     # Format the list of reports the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    reports_list = [{'name': report, 'value': report} for report in report_names]
+    reports_list = [{'name': all_reports[str(report_id)]['workout_name'], 'value': report_id}
+                    for report_id in report_dates]
 
     return reports_list
 
 
-def fields_in_report_quickfetch(userid, report_name):
-    pass
+def fields_in_report_quickfetch(userid, report_id):
+    """Return a list (in autocomplete format) of all the editable fields in the selected report.
+
+    :param userid: (int) the Discord ID of the person who used the slash command
+    :param report_id: (str) the id (also the unix timestamp of creation) for the selected report
+    :return: (list of dicts) dict for every field in the report. ex: {'name': 'comment', 'value': 'comment'}
+    """
+    # Get the workout in question
+    all_reports = get_all_reports(userid)
+    report = all_reports[report_id]
+
+    # Get a list of the fields in the report
+    fields = [field for field in report]
+
+    # Remove workout_id and workout_name from the fields if it's a scheduled workout
+    if 'completion' in fields:
+        fields.remove('workout_id')
+        fields.remove('workout_name')
+
+    # Construct the list of dicts in the format autocomplete likes
+    fields_list = [{'name': field, 'value': field} for field in fields]
+
+    return fields_list
 
 
 def workouts_quickfetch(userid):
-    pass
+    """Returns a list (in quickfetch form ready for autocomplete) of every workout schedule the user has created.
+
+    :param userid: (int) the Discord ID of the person who used the slash command
+    :return: (list of dicts) dict for every workout schedule the user has created.
+             ex: {'name': 'Push-ups', 'value': 'Push-ups'}
+    """
+    workouts = read_json()['users'][str(userid)]['scheduled_workout']
+
+    workouts_list = [{'name': workouts[workout_id]['workout_name'], 'value': str(workout_id)}
+                     for workout_id in workouts]
+
+    return workouts_list

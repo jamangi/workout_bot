@@ -161,7 +161,7 @@ def get_all_reports(userid):
     # Add all scheduled reports to the reports dict
     scheduled = json_data['users'][userid]['scheduled_workout']
     for workout_id in scheduled:
-        for report_id, report_data in scheduled[workout_id]['reports']:
+        for report_id, report_data in scheduled[workout_id]['reports'].items():
             reports[report_id] = report_data
             reports[report_id]['workout_id'] = workout_id  # add the workout id to report data for clarity
             reports[report_id]['workout_name'] = scheduled[workout_id]['workout_name']  # the workout's name, too

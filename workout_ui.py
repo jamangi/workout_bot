@@ -324,9 +324,9 @@ async def fields_in_report_autocomplete(ctx: AutocompleteContext):
     """
     # Fetch a list of fields in the selected report that the user might be able to change
     try:
-        report_selected = isinstance(ctx.args[3], str)
+        float(ctx.args[3])
         fields = fields_in_report_quickfetch(userid=int(ctx.author_id),
-                                             report_name=ctx.args[3])
+                                             report_id=ctx.args[3])
     except:
         fields = [{'name': 'Error: Please delete the command and try again. Make sure you fill in all fields in order.',
                    'value': 'error'}]
