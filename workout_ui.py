@@ -269,7 +269,9 @@ async def reports_months_autocomplete(ctx: AutocompleteContext):
         months_list = reports_months_quickfetch(userid=int(ctx.author_id),
                                                 year=ctx.args[0])
     except:
-        months_list = [{'name': 'latest', 'value': 'latest'}]
+        months_list = [{'name': 'Error: Please delete the command and try again. '
+                                'Make sure you fill in all fields in order.',
+                        'value': 'error'}]
 
     await ctx.send(choices=months_list)
 
@@ -287,7 +289,9 @@ async def reports_days_autocomplete(ctx: AutocompleteContext):
                                             year=ctx.args[0],
                                             month=ctx.args[1])
     except:
-        days_list = [{'name': 'latest', 'value': 'latest'}]
+        days_list = [{'name': 'Error: Please delete the command and try again. '
+                              'Make sure you fill in all fields in order.',
+                      'value': 'error'}]
 
     await ctx.send(choices=days_list)
 
@@ -306,10 +310,9 @@ async def reports_by_day_autocomplete(ctx: AutocompleteContext):
                                             month=ctx.args[1],
                                             day=ctx.args[2])
     except:
-        reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
-                                            year='latest',
-                                            month='latest',
-                                            day='latest')
+        reports = [{'name': 'Error: Please delete the command and try again. '
+                            'Make sure you fill in all fields in order.',
+                    'value': 'error'}]
     await ctx.send(choices=reports)
 
 

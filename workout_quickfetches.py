@@ -27,7 +27,7 @@ def reports_years_quickfetch(userid):
 
     # Format the list of years the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
     year_strings = [str(year) for year in valid_years]
-    years_list = [{'name': 'latest', 'value': 'latest'}] + [{'name': year, 'value': year} for year in year_strings]
+    years_list = [{'name': year, 'value': year} for year in year_strings]
 
     return years_list
 
@@ -65,8 +65,7 @@ def reports_months_quickfetch(userid, year):
             valid_months.append(month)
 
     # Format the list of months the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    months_list = ([{'name': 'latest', 'value': 'latest'}]
-                   + [{'name': f"{month} - {months_hash[month]}", 'value': str(month)} for month in valid_months])
+    months_list = [{'name': f"{month} - {months_hash[month]}", 'value': str(month)} for month in valid_months]
 
     return months_list
 
@@ -107,8 +106,7 @@ def reports_days_quickfetch(userid, year, month):
             valid_days.append(day)
 
     # Format the list of days the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    days_list = ([{'name': 'latest', 'value': 'latest'}]
-                 + [{'name': f"{day} - {months_hash[month]} {day}, {year}", 'value': str(day)} for day in valid_days])
+    days_list = [{'name': f"{day} - {months_hash[month]} {day}, {year}", 'value': str(day)} for day in valid_days]
 
     return days_list
 
@@ -134,7 +132,7 @@ def reports_by_day_quickfetch(userid, year, month, day):
     all_reports = get_all_reports(str(userid))
     report_dates = [float(report_id) for report_id in all_reports if day_start <= float(report_id) < day_end]
     report_dates.sort()
-    report_names = [all_reports[report_id]['workout_name'] for report_id in report_dates]
+    report_names = [all_reports[str(report_id)]['workout_name'] for report_id in report_dates]
 
     # Format the list of reports the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
     reports_list = [{'name': report, 'value': report} for report in report_names]
