@@ -6,6 +6,8 @@ from interactions.api.events import CommandError
 import os
 from json import dump as json_dump
 
+from workout_main import (schedule_routine_main, report_scheduled_main, report_unscheduled_main, edit_workout_main,
+                          edit_report_main)
 from workout_quickfetches import (reports_years_quickfetch, reports_months_quickfetch, reports_days_quickfetch,
                                   reports_by_day_quickfetch, fields_in_report_quickfetch, workouts_quickfetch)
 
@@ -64,7 +66,7 @@ base_command = SlashCommand(
               opt_type=OptionType.STRING, required=False, autocomplete=True)
 @slash_option(name="workout_day_7", description="Schedule a workout for this day every week",
               opt_type=OptionType.STRING, required=False, autocomplete=True)
-@slash_option(name="muscle_groups", description="Which muscle group(s) will the workout work out?",
+@slash_option(name="muscle_group", description="Which muscle group(s) will the workout work out?",
               opt_type=OptionType.STRING, required=False)
 @slash_option(name="weights_used", description="Which weights will the workout use?",
               opt_type=OptionType.STRING, required=False)
@@ -75,23 +77,23 @@ base_command = SlashCommand(
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
 async def schedule_routine(ctx: SlashContext, workout_name,
+                           muscle_group=None, weights_used=None, tutorial_url=None, image_url=None,
                            workout_day_1=None, workout_day_2=None, workout_day_3=None,
                            workout_day_4=None, workout_day_5=None, workout_day_6=None, workout_day_7=None,
-                           muscle_groups=None, weights_used=None, tutorial_url=None, image_url=None,
                            show_everyone=False):
     msg = schedule_routine_main(user=ctx.author,
                                 workout_name=workout_name,
+                                muscle_group=muscle_group,
+                                weights_used=weights_used,
+                                tutorial_url=tutorial_url,
+                                image_url=image_url,
                                 workout_day_1=workout_day_1,
                                 workout_day_2=workout_day_2,
                                 workout_day_3=workout_day_3,
                                 workout_day_4=workout_day_4,
                                 workout_day_5=workout_day_5,
                                 workout_day_6=workout_day_6,
-                                workout_day_7=workout_day_7,
-                                muscle_groups=muscle_groups,
-                                weights_used=weights_used,
-                                tutorial_url=tutorial_url,
-                                image_url=image_url)
+                                workout_day_7=workout_day_7,)
 
     await ctx.send(msg, ephemeral=not show_everyone)
 
