@@ -130,7 +130,7 @@ async def report_scheduled(ctx: SlashContext, workout_name, completion, comment=
                          sub_cmd_description="Report a workout routine you didn't schedule ahead of time")
 @slash_option(name="workout_name", description="What should this unscheduled workout be called?",
               opt_type=OptionType.STRING, required=True, max_length=79)
-@slash_option(name="muscle_groups", description="Which muscle group(s) did the workout work out?",
+@slash_option(name="muscle_group", description="Which muscle group(s) did the workout work out?",
               opt_type=OptionType.STRING, required=False)
 @slash_option(name="weights_used", description="Which weights did the workout use?",
               opt_type=OptionType.STRING, required=False)
@@ -141,11 +141,11 @@ async def report_scheduled(ctx: SlashContext, workout_name, completion, comment=
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
 async def report_unscheduled(ctx: SlashContext, workout_name,
-                             muscle_groups=None, weights_used=None, tutorial_url=None, image_url=None,
+                             muscle_group=None, weights_used=None, tutorial_url=None, image_url=None,
                              show_everyone=False):
     msg = report_unscheduled_main(user=ctx.author,
                                   workout_name=workout_name,
-                                  muscle_groups=muscle_groups,
+                                  muscle_group=muscle_group,
                                   weights_used=weights_used,
                                   tutorial_url=tutorial_url,
                                   image_url=image_url)
@@ -235,9 +235,8 @@ async def edit_report(ctx: SlashContext, report_to_edit, field_to_change, new_va
     # Remember to constrain the date within the autocomplete so that future dates default to latest and dates before
     # the first recorded report are default to the oldest reports
     msg = edit_report_main(user=ctx.author,
-                           report_name=report_to_edit,
-                           report_to_edit=report_to_edit,
-                           field_to_change=field_to_change,
+                           report_id=report_to_edit,
+                           field=field_to_change,
                            new_value=new_value)
 
     await ctx.send(msg, ephemeral=not show_everyone)
