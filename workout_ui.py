@@ -298,7 +298,8 @@ async def reports_days_autocomplete(ctx: AutocompleteContext):
 
 @edit_report.autocomplete("report_to_edit")
 async def reports_by_day_autocomplete(ctx: AutocompleteContext):
-    """Fetches a list of reports made by the user around the specified day.
+    """Fetches a list of reports made by the user around the specified day. Includes the day before and the day
+    after to smooth out any memory/time zone issues.
 
     :param ctx: (object) contains information about the interaction
     """

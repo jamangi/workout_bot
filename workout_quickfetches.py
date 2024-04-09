@@ -113,7 +113,7 @@ def reports_days_quickfetch(userid, year, month):
 
 def reports_by_day_quickfetch(userid, year, month, day):
     """Returns a list (in quickfetch form ready for autocomplete) of all the reports the user submitted on the
-    specified day, whether scheduled or unscheduled.
+    specified day and the days directly before and after, whether scheduled or unscheduled.
 
         :param userid: (int) the Discord ID of the person who used the slash command
         :param year: (str) the year that is being queried to check for workouts
@@ -122,21 +122,24 @@ def reports_by_day_quickfetch(userid, year, month, day):
         :return: (list of dicts) dict for every report made that day. The "value" is the report id (its unix timestamp)
                  ex: {'name': 'Push-ups', 'value': '1646880978.123'}
         """
-    # Get bounds of this day
+    months_hash = {1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                   9: 'September', 10: 'October', 11: 'November', 12: 'December'}
+
+    # Get bounds from beginning of previous day to end of next day
     year = int(year)
     month = int(month)
     day = int(day)
-    day_start = datetime(year, month, day).timestamp()
-    day_end = datetime(year, month, day+1).timestamp()
+    range_start = datetime(year, month, day-1).timestamp()
+    range_end = datetime(year, month, day+2).timestamp()
 
     # Get the dates of all the reports the user has submitted this month
     all_reports = get_all_reports(str(userid))
-    report_dates = [float(report_id) for report_id in all_reports if day_start <= float(report_id) < day_end]
+    report_dates = [float(report_id) for report_id in all_reports if range_start <= float(report_id) < range_end]
     report_dates.sort()
 
     # Format the list of reports the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    reports_list = [{'name': all_reports[str(report_id)]['workout_name'], 'value': report_id}
-                    for report_id in report_dates]
+    reports_list = [{'name': f"all_reports[str(report_id)]['workout_name'] - {months_hash[month]} {day}, {year}",
+                     'value': report_id} for report_id in report_dates]
 
     return reports_list
 
