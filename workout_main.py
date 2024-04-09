@@ -1,5 +1,5 @@
-from workout_backend import (read_json, edit_value, add_user, add_scheduled_workout, add_unscheduled_workout,
-                             add_report, get_all_reports)
+from workout_backend import (read_json, edit_value, add_user, add_scheduled_workout,
+                             add_unscheduled_workout, add_report, get_all_reports)
 
 
 def schedule_routine_main(user, workout_name, muscle_group, weights_used, tutorial_url, image_url, workout_day_1,
@@ -96,7 +96,6 @@ def edit_report_main(user, report_id, field, new_value):
     :param new_value: (str) the new value of the field that we're editing to
     :return: (str) a message to be returned to Discord reporting the success of the operation
     """
-    pass
     user_id = int(user.id)
     # If what's being changed is the workout name, make sure it's not too long
     if field == 'workout_name' and len(new_value) > 79:

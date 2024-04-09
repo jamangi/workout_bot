@@ -146,6 +146,40 @@ def add_report(user_id, workout_name, completion, comment=None):
         json.dump(json_data, file, indent=4)
 
 
+def delete_from_dict(user_id, workout_unixid=None, report_unixid=None):
+    """Delete a workout or report from the json file. If workout_unixid is given but not report_unixid, the selected
+    scheduled workout will be deleted. If report_unixid is given but not workout_unixid, the selected unscheduled
+    workout report will be deleted. If both are given, the selected scheduled workout report will be deleted.
+
+    :param user_id: (int) the Discord ID of the person whose information is being updated
+    :param workout_unixid: (float) the scheduled workout's unix time
+    :param report_unixid: (float) the report's unix time
+    """
+    filename = config("FILENAME")
+    user_id = str(user_id)
+    with open(filename, 'r') as file:
+        json_data = json.load(file)
+
+    # Make sure enough info is given to make specifying a key to remove possible
+    if not workout_unixid and not report_unixid:
+        raise ValueError("Please provide at least one of workout_unixid or report_unixid to specify what to delete.")
+
+    # Remove unscheduled workout report if only report id is provided
+    elif not workout_unixid:
+        del json_data['users'][user_id]['unscheduled_workout'][report_unixid]
+
+    # Remove scheduled workout routine if only workout id is provided
+    elif not report_unixid:
+        del json_data['users'][user_id]['scheduled_workout'][workout_unixid]
+
+    # Remove scheduled workout report if both report id and workout id are provided
+    else:
+        del json_data['users'][user_id]['scheduled_workout'][workout_unixid][report_unixid]
+
+    with open(filename, 'w') as file:
+        json.dump(json_data, file, indent=4)
+
+
 def get_all_reports(userid):
     """Get a list of all the reports, both scheduled and unscheduled, for the given user
 
