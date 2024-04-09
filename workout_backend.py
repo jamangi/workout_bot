@@ -36,13 +36,14 @@ def edit_value(user_id, field, new_value,
         if scheduled_or_unscheduled != 'scheduled_workout' and scheduled_or_unscheduled != 'unscheduled_workout':
             raise ValueError('In edit_value, scheduled_or_unscheduled must be either None or '
                              '"scheduled_workout" or "unscheduled_workout".')
-        if not workout_unixid:
-            raise ValueError('If scheduled_or_unscheduled is given as an argument, a workout_unixid must be '
-                             'supplied to clarify which workout is being referred to.')
         if not report_unixid:
-            json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][field] = new_value
+            raise ValueError('If scheduled_or_unscheduled is given as an argument, a report_unixid must be '
+                             'supplied to clarify which report is being referred to.')
+        if not workout_unixid:
+            json_data['users'][user_id][scheduled_or_unscheduled][report_unixid][field] = new_value
         else:
-            json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][report_unixid][field] = new_value
+            json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid]['reports'][report_unixid][field] \
+                = new_value
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
@@ -83,11 +84,12 @@ def add_scheduled_workout(user_id, workout_name, days_scheduled, muscle_group=No
         json_data = json.load(file)
 
     json_data['users'][str(user_id)]['scheduled_workout'][time_now] = {'workout_name': workout_name,
-                                                                  'days_scheduled': days_scheduled,
-                                                                  'muscle_group': muscle_group,
-                                                                  'weights_used': weights_used,
-                                                                  'tutorial_url': tutorial_url,
-                                                                  'img_url': img_url}
+                                                                       'days_scheduled': days_scheduled,
+                                                                       'muscle_group': muscle_group,
+                                                                       'weights_used': weights_used,
+                                                                       'tutorial_url': tutorial_url,
+                                                                       'img_url': img_url,
+                                                                       'reports': {}}
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
@@ -110,18 +112,18 @@ def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_us
     with open(filename, 'r') as file:
         json_data = json.load(file)
 
-    json_data['users'][user_id]['unscheduled_workout'][time_now] = {'workout_name': workout_name,
-                                                                    'muscle_group': muscle_group,
-                                                                    'weights_used': weights_used,
-                                                                    'tutorial_url': tutorial_url,
-                                                                    'img_url': img_url}
+    json_data['users'][str(user_id)]['unscheduled_workout'][time_now] = {'workout_name': workout_name,
+                                                                         'muscle_group': muscle_group,
+                                                                         'weights_used': weights_used,
+                                                                         'tutorial_url': tutorial_url,
+                                                                         'img_url': img_url}
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
 
 
 def add_report(user_id, completion, workout_name=None, workout_id=None, comment=None):
-    """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
+    """Adds a report for a scheduled workout in the users dict in the json.
     Workout can be accessed by referring to either its name or its id.
 
     :param user_id: (int) the Discord ID of the user reporting the workout
@@ -138,12 +140,12 @@ def add_report(user_id, completion, workout_name=None, workout_id=None, comment=
 
     if workout_name:
         # Find the dict with the desired workout_name
-        unscheduled = json_data['users'][str(user_id)]['unscheduled_workout']
-        workout_id = [workout for workout in unscheduled if unscheduled[workout]['workout_name'] == workout_name][0]
+        scheduled = json_data['users'][str(user_id)]['scheduled_workout']
+        workout_id = [workout for workout in scheduled if scheduled[workout]['workout_name'] == workout_name][0]
 
     # Add the report to the reports dict
-    json_data['users'][str(user_id)]['unscheduled_workout'][workout_id][time_now] = {'completion': completion,
-                                                                                     'comment': comment}
+    json_data['users'][str(user_id)]['scheduled_workout'][workout_id]["reports"][time_now] = {'completion': completion,
+                                                                                              'comment': comment}
 
     if not workout_name and not workout_id:
         raise ValueError("add_report must be provided either workout_id or workout_name, but got neither.")

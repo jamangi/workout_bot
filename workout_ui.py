@@ -21,7 +21,7 @@ async def on_ready():
     # Make sure the database file is already there. If it's not, create it
     if not os.path.isfile(config("FILENAME")) or not os.path.isfile(config("FILENAME")):
         with open(config("FILENAME"), 'w') as new_json:
-            json_dump({}, new_json)
+            json_dump({"users": {}}, new_json)
 
 
 @listen(CommandError, disable_default_listeners=True)  # tell the dispatcher that this replaces the default listener
@@ -35,7 +35,7 @@ async def on_command_error(event: CommandError):
     if not event.ctx.responded:
         errors = ''
         if event.error.args[0]:
-            errors = '\nAlso! '.join(event.error.args)
+            errors = '\nAlso! '.join([str(error) for error in event.error.args])
         await event.ctx.send('Error! ' + errors, ephemeral=True)
 
 
@@ -230,7 +230,7 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
               opt_type=OptionType.STRING, required=True)
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
-async def edit_report(ctx: SlashContext, report_to_edit, field_to_change, new_value,
+async def edit_report(ctx: SlashContext, year, month, day, report_to_edit, field_to_change, new_value,
                       show_everyone=False):
     # Remember to constrain the date within the autocomplete so that future dates default to latest and dates before
     # the first recorded report are default to the oldest reports
@@ -377,7 +377,11 @@ async def user_workouts_autocomplete(ctx: AutocompleteContext):
     :param ctx: (object) contains information about the interaction
     """
     # Fetch a list of the user's workouts
-    workouts = workouts_quickfetch(userid=int(ctx.author_id))
+    try:
+        workouts = workouts_quickfetch(userid=int(ctx.author_id))
+    except KeyError:
+        workouts = [{'name': 'There are no workouts reported under your name. Get swole, then try again',
+                     'value': 'error'}]
     await ctx.send(choices=workouts)
 
 # -------------------------------------------------------------------------------------------------------------------- #

@@ -155,12 +155,12 @@ def edit_workout_main(user, workout_id, field, new_value,
 
     # Make the requested change
     if new_value:
-        edit_value(user_id, field, new_value, workout_unixid=workout_id)
+        edit_value(user_id, field, new_value, scheduled_or_unscheduled='scheduled_workout', workout_unixid=workout_id)
 
     # Change the schedule, too, if requested
     days_scheduled = [day for day in workout_days if day is not None]
-    if len(workout_days) > 0:
-        edit_value(user_id, 'days_scheduled', workout_days, 'scheduled_workout', workout_unixid=workout_id)
+    if len(days_scheduled) > 0:
+        edit_value(user_id, 'days_scheduled', days_scheduled, 'scheduled_workout', workout_unixid=workout_id)
 
     # Create a sentence about the workout's new schedule if it was changed
     sched_msg = ''
@@ -195,20 +195,25 @@ def edit_report_main(user, report_id, field, new_value):
     if field == 'workout_name' and len(new_value) > 79:
         raise ValueError("Your new workout name is too long. The maximum length is 79 characters.")
 
+    # If what's being changed is the completion, make sure it's one of the three accepted values
+    if (field == 'completion' and new_value != "complete"
+            and new_value != "partially complete" and new_value != "skipped"):
+        raise ValueError("Completion can only be one of 'complete', 'partially complete', or 'skipped'.")
+
     # Figure out if it's scheduled or unscheduled, then edit the value
     all_reports = get_all_reports(user_id)
     full_report = all_reports[report_id]
     if 'completion' in full_report:
         workout_id = full_report['workout_id']
-        edit_value(user_id, field, new_value, 'scheduled',
+        edit_value(user_id, field, new_value, 'scheduled_workout',
                    workout_unixid=workout_id, report_unixid=report_id)
         scheduled_or_unscheduled = 'scheduled'
     else:
-        edit_value(user_id, field, new_value, 'unscheduled', report_unixid=report_id)
+        edit_value(user_id, field, new_value, 'unscheduled_workout', report_unixid=report_id)
         scheduled_or_unscheduled = 'unscheduled'
 
     # Gather the information necessary to make the message we'll send back to Discord, then make the message
-    timestamp = '<t:report_id:t>'
+    timestamp = f'<t:{int(float(report_id))}:f>'
     workout_name = full_report['workout_name']
     message = (f"The report for the {scheduled_or_unscheduled} workout {workout_name} made at {timestamp} has been "
                f"edited. The value for {field} has been changed to {new_value}")

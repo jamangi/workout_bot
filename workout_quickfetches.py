@@ -138,7 +138,7 @@ def reports_by_day_quickfetch(userid, year, month, day):
     report_dates.sort()
 
     # Format the list of reports the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    reports_list = [{'name': f"all_reports[str(report_id)]['workout_name'] - {months_hash[month]} {day}, {year}",
+    reports_list = [{'name': f"{all_reports[str(report_id)]['workout_name']} - {months_hash[month]} {day}, {year}",
                      'value': report_id} for report_id in report_dates]
 
     return reports_list
