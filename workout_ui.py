@@ -116,7 +116,7 @@ async def schedule_routine(ctx: SlashContext, workout_name,
               opt_type=OptionType.BOOLEAN, required=False)
 async def report_scheduled(ctx: SlashContext, workout_name, completion, comment=None, show_everyone=False):
     msg = report_scheduled_main(user=ctx.author,
-                                workout_name=workout_name,
+                                workout_id=workout_name,
                                 completion=completion,
                                 comment=comment)
 

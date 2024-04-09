@@ -73,8 +73,24 @@ def schedule_routine_main(user, workout_name, muscle_group, weights_used, tutori
     return message
 
 
-def report_scheduled_main(user, workout_name, completion, comment):
-    pass
+def report_scheduled_main(user, workout_id, completion, comment):
+    """Create a report for the specified scheduled workout, then send a confirmation message back to Discord.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param workout_id: (str) the id (also unix time of creation) of the scheduled workout that was completed
+    :param completion: (str) how much of the workout was finished. Either "complete", "partially complete", or "skipped"
+    :param comment: (str) any comments about how the workout went
+    :return: (str) a confirmation message to be sent back to Discord
+    """
+    user_id = int(user.id)
+    # Add the report to the json database
+    add_report(user_id, completion, comment=comment, workout_id=workout_id)
+
+    message = (f"Your report for this scheduled workout has been logged:\n"
+               f"Completion: {completion}"
+               f"Comment: {comment}")
+
+    return message
 
 
 def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tutorial_url, image_url):
