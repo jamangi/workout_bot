@@ -87,14 +87,33 @@ def report_scheduled_main(user, workout_id, completion, comment):
     add_report(user_id, completion, comment=comment, workout_id=workout_id)
 
     message = (f"Your report for this scheduled workout has been logged:\n"
-               f"Completion: {completion}"
+               f"Completion: {completion}\n"
                f"Comment: {comment}")
 
     return message
 
 
 def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tutorial_url, image_url):
-    pass
+    """Create a report for an unscheduled workout, then send a confirmation message back to Discord.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param workout_name: (str) the name of the workout being added
+    :param muscle_group: (str) a brief statement or description of the muscle groups used
+    :param weights_used: (str) a brief statement or description of the weights used
+    :param tutorial_url: (str) the url for a tutorial that can be accessed for aid
+    :param image_url: (str) the url for an image that represents the workout
+    :return: (str) a message to be returned to Discord reporting the success of the operation
+    """
+    # Add the report to the json database
+    add_unscheduled_workout(int(user.id), workout_name, muscle_group, weights_used, tutorial_url, image_url)
+
+    message = (f"Your report for this scheduled workout has been logged:\n"
+               f"Workout name: {workout_name}\n"
+               f"Muscle group(s) used: {muscle_group}\n"
+               f"Link to tutorial: {tutorial_url}\n"
+               f"Image: {image_url}")
+
+    return message
 
 
 def edit_workout_main(user, workout_name, field_to_change, new_value,
