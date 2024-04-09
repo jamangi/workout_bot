@@ -197,8 +197,8 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
                        new_schedule_day_5=None, new_schedule_day_6=None, new_schedule_day_7=None,
                        show_everyone=False):
     msg = edit_workout_main(user=ctx.author,
-                            workout_name=workout_name,
-                            field_to_change=field_to_change,
+                            workout_id=workout_name,
+                            field=field_to_change,
                             new_value=new_value,
                             new_schedule_day_1=new_schedule_day_1,
                             new_schedule_day_2=new_schedule_day_2,

@@ -41,7 +41,7 @@ def schedule_routine_main(user, workout_name, muscle_group, weights_used, tutori
                           tutorial_url=tutorial_url,
                           img_url=image_url)
 
-    # Create a sentence about the message's schedule if one was entered
+    # Create a sentence about the workout's schedule if one was entered
     sched_msg = ''
     if len(days_scheduled) > 0:
         if len(days_scheduled) > 1:
@@ -104,8 +104,15 @@ def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tuto
     :param image_url: (str) the url for an image that represents the workout
     :return: (str) a message to be returned to Discord reporting the success of the operation
     """
+    user_id = int(user.id)
+
+    # If the user isn't already in the json, add them
+    json_data = read_json()
+    if str(user_id) not in json_data['users']:
+        add_user(user_id, user.display_name)
+
     # Add the report to the json database
-    add_unscheduled_workout(int(user.id), workout_name, muscle_group, weights_used, tutorial_url, image_url)
+    add_unscheduled_workout(user_id, workout_name, muscle_group, weights_used, tutorial_url, image_url)
 
     message = (f"Your report for this scheduled workout has been logged:\n"
                f"Workout name: {workout_name}\n"
@@ -116,10 +123,62 @@ def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tuto
     return message
 
 
-def edit_workout_main(user, workout_name, field_to_change, new_value,
+def edit_workout_main(user, workout_id, field, new_value,
                       new_schedule_day_1, new_schedule_day_2, new_schedule_day_3, new_schedule_day_4,
                       new_schedule_day_5, new_schedule_day_6, new_schedule_day_7):
-    pass
+    """Edits a single field in a report, and/or changes the schedule. Can do both at the same time.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param workout_id: (str) the id (also the unix time of creation) of the workout to be edited
+    :param field: (str) the name of the field whose value we're editing
+    :param new_value: (str) the new value of the field that we're editing to
+    :param new_schedule_day_1: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_2: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_3: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_4: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_5: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_6: (str) a day of the week during which the workout should be regularly done from now on
+    :param new_schedule_day_7: (str) a day of the week during which the workout should be regularly done from now on
+    :return: (str) a message to be returned to Discord reporting the success of the operation
+    """
+    user_id = int(user.id)
+    workout_days = [new_schedule_day_1, new_schedule_day_2, new_schedule_day_3,
+                    new_schedule_day_4, new_schedule_day_5, new_schedule_day_6, new_schedule_day_7]
+
+    # Return an error if no changes were requested
+    if len(workout_days) == 0 and not new_value:
+        raise ValueError("You didn't actually request any changes to the workout... Make sure to specify them!")
+
+    # If what's being changed is the workout name, make sure it's not too long
+    if field == 'workout_name' and len(new_value) > 79:
+        raise ValueError("Your new workout name is too long. The maximum length is 79 characters.")
+
+    # Make the requested change
+    if new_value:
+        edit_value(user_id, field, new_value, workout_unixid=workout_id)
+
+    # Change the schedule, too, if requested
+    days_scheduled = [day for day in workout_days if day is not None]
+    if len(workout_days) > 0:
+        edit_value(user_id, 'days_scheduled', workout_days, 'scheduled_workout', workout_unixid=workout_id)
+
+    # Create a sentence about the workout's new schedule if it was changed
+    sched_msg = ''
+    if len(days_scheduled) > 0:
+        if len(days_scheduled) > 1:
+            workout_schedule_string = ', '.join(days_scheduled[:-1]) + f" and {days_scheduled[-1]}"
+        else:
+            workout_schedule_string = days_scheduled[0]
+        sched_msg = (f" The schedule has been changed. The workout will now be done every week "
+                     f"on {workout_schedule_string}.")
+
+    # Generate a message to be sent back to Discord
+    message = f"The requested change has been made to your scheduled workout."
+    if new_value:
+        message += f" {field} has been changed to {new_value}."
+    message += sched_msg
+
+    return message
 
 
 def edit_report_main(user, report_id, field, new_value):
