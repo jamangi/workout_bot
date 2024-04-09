@@ -120,12 +120,14 @@ def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_us
         json.dump(json_data, file, indent=4)
 
 
-def add_report(user_id, workout_name, completion, comment=None):
+def add_report(user_id, completion, workout_name=None, workout_id=None, comment=None):
     """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
+    Workout can be accessed by referring to either its name or its id.
 
     :param user_id: (int) the Discord ID of the user reporting the workout
-    :param workout_name: (str) the name of the reported workout
     :param completion: (str) whether the workout was skipped or completed, and to what degree. Options constrained
+    :param workout_name: (str) the name of the reported workout
+    :param workout_id: (str) the id (also unix time of creation) for the specified workout
     :param comment: (str) a comment about how the workout went
     """
     filename = config("FILENAME")
@@ -134,13 +136,17 @@ def add_report(user_id, workout_name, completion, comment=None):
     with open(filename, 'r') as file:
         json_data = json.load(file)
 
-    # Find the dict with the desired workout_name
-    unscheduled = json_data['users'][str(user_id)]['unscheduled_workout']
-    workout_unixid = [workout for workout in unscheduled if unscheduled[workout]['workout_name'] == workout_name][0]
+    if workout_name:
+        # Find the dict with the desired workout_name
+        unscheduled = json_data['users'][str(user_id)]['unscheduled_workout']
+        workout_id = [workout for workout in unscheduled if unscheduled[workout]['workout_name'] == workout_name][0]
 
     # Add the report to the reports dict
-    json_data['users'][str(user_id)]['unscheduled_workout'][workout_unixid][time_now] = {'completion': completion,
-                                                                                         'comment': comment}
+    json_data['users'][str(user_id)]['unscheduled_workout'][workout_id][time_now] = {'completion': completion,
+                                                                                     'comment': comment}
+
+    if not workout_name and not workout_id:
+        raise ValueError("add_report must be provided either workout_id or workout_name, but got neither.")
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
