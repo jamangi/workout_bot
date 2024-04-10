@@ -241,8 +241,16 @@ def view_report_main(user, report_id):
     user_nick = user.display_name
     timestamp = f"<t:{int(float(report_id))}:f>"
 
-    message = (f"Here is all the data from the report on the {scheduled_or_unscheduled} workout session "
-               f"'{workout_name}' which was done by {user_nick} on {timestamp}:\n") + '\n'.join(report_data)
+    image_str = ''
+    if scheduled_or_unscheduled == 'scheduled':
+        image = read_json()['users'][str(user.id)]['scheduled_workout'][report['workout_id']]['img_url']
+        if image:
+            image_str = image
+
+    message = ((f"Here is all the data from the report on the {scheduled_or_unscheduled} workout session "
+               f"'{workout_name}' which was done by {user_nick} on {timestamp}:\n")
+               + '\n'.join(report_data)
+               + '\n' + image_str)
 
     return message
 
@@ -254,10 +262,25 @@ def view_workout_main(user, workout_id):
     :param workout_id: (str) the id (also the unix time of creation) of the workout to be viewed
     :return: (str) a message to be returned to Discord containing info about the specified workout and its reports
     """
-    # Get the workout and compile its data into strings
+    # Get the workout and extract its reports and days scheduled
     workout = read_json()['users'][str(user.id)]['scheduled_workout'][workout_id]
     reports = workout['reports']
     del workout['reports']
+    days_scheduled = workout['days_scheduled']
+
+    # Create a sentence about the workout's schedule if one was entered
+    if len(days_scheduled) > 0:
+        if len(days_scheduled) > 1:
+            workout_schedule_string = ', '.join(days_scheduled[:-1]) + f" and {days_scheduled[-1]}"
+        else:
+            workout_schedule_string = days_scheduled[0]
+    else:
+        workout_schedule_string = 'None'
+
+    # Compile the workout data into strings
+    if workout['tutorial_url']:
+        workout['tutorial_url'] = f"`{workout['tutorial_url']}`"
+    workout['days_scheduled'] = workout_schedule_string
     workout_data = [f"{field}: {value}" for field, value in workout.items()]
 
     # Compile the reports into strings, too
