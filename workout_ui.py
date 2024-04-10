@@ -7,7 +7,7 @@ import os
 from json import dump as json_dump
 
 from workout_main import (schedule_routine_main, report_scheduled_main, report_unscheduled_main, edit_workout_main,
-                          edit_report_main)
+                          edit_report_main, view_report_main, view_workout_main)
 from workout_quickfetches import (reports_years_quickfetch, reports_months_quickfetch, reports_days_quickfetch,
                                   reports_by_day_quickfetch, fields_in_report_quickfetch, workouts_quickfetch)
 
@@ -206,7 +206,7 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
                             new_schedule_day_4=new_schedule_day_4,
                             new_schedule_day_5=new_schedule_day_5,
                             new_schedule_day_6=new_schedule_day_6,
-                            new_schedule_day_7=new_schedule_day_7,)
+                            new_schedule_day_7=new_schedule_day_7)
 
     await ctx.send(msg, ephemeral=not show_everyone)
 
@@ -232,90 +232,12 @@ async def edit_workout(ctx: SlashContext, workout_name, field_to_change, new_val
               opt_type=OptionType.BOOLEAN, required=False)
 async def edit_report(ctx: SlashContext, year, month, day, report_to_edit, field_to_change, new_value,
                       show_everyone=False):
-    # Remember to constrain the date within the autocomplete so that future dates default to latest and dates before
-    # the first recorded report are default to the oldest reports
     msg = edit_report_main(user=ctx.author,
                            report_id=report_to_edit,
                            field=field_to_change,
                            new_value=new_value)
 
     await ctx.send(msg, ephemeral=not show_everyone)
-
-
-@edit_report.autocomplete("year")
-async def reports_years_autocomplete(ctx: AutocompleteContext):
-    """Fetches a list of years in which the user has completed workout sessions.
-
-    :param ctx: (object) contains information about the interaction
-    """
-    # Fetch a list of years in which the user has submitted reports
-    try:
-        years_list = reports_years_quickfetch(userid=int(ctx.author_id))
-    except KeyError:
-        years_list = [{'name': 'There are no workouts reported under your name. Get swole, then try again',
-                       'value': 'error'}]
-
-    await ctx.send(choices=years_list)
-
-
-@edit_report.autocomplete("month")
-async def reports_months_autocomplete(ctx: AutocompleteContext):
-    """Fetches a list of months within the selected year in which the user has completed workout sessions.
-
-    :param ctx: (object) contains information about the interaction
-    """
-    # Fetch a list of months in the selected year in which the user has submitted reports
-    try:
-        int(ctx.args[0])
-        months_list = reports_months_quickfetch(userid=int(ctx.author_id),
-                                                year=ctx.args[0])
-    except:
-        months_list = [{'name': 'Error: Please delete the command and try again. '
-                                'Make sure you fill in all fields in order.',
-                        'value': 'error'}]
-
-    await ctx.send(choices=months_list)
-
-
-@edit_report.autocomplete("day")
-async def reports_days_autocomplete(ctx: AutocompleteContext):
-    """Fetches a list of days within the selected year and month in which the user has completed workout sessions.
-
-    :param ctx: (object) contains information about the interaction
-    """
-    # Fetch a list of days in the selected month of the selected year in which the user has submitted reports
-    try:
-        int(ctx.args[1])
-        days_list = reports_days_quickfetch(userid=int(ctx.author_id),
-                                            year=ctx.args[0],
-                                            month=ctx.args[1])
-    except:
-        days_list = [{'name': 'Error: Please delete the command and try again. '
-                              'Make sure you fill in all fields in order.',
-                      'value': 'error'}]
-
-    await ctx.send(choices=days_list)
-
-
-@edit_report.autocomplete("report_to_edit")
-async def reports_by_day_autocomplete(ctx: AutocompleteContext):
-    """Fetches a list of reports made by the user around the specified day. Includes the day before and the day
-    after to smooth out any memory/time zone issues.
-
-    :param ctx: (object) contains information about the interaction
-    """
-    # Fetch a list of all the reports the user has made on the selected day, and on surrounding days if convenient
-    try:
-        int(ctx.args[2])
-        reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
-                                            year=ctx.args[0],
-                                            month=ctx.args[1],
-                                            day=ctx.args[2])
-    except:
-        reports = [{'name': 'Error: Please delete the command and try again. '
-                            'Make sure you fill in all fields in order.',
-                    'value': 'error'}]
-    await ctx.send(choices=reports)
 
 
 @edit_report.autocomplete("field_to_change")
@@ -334,6 +256,44 @@ async def fields_in_report_autocomplete(ctx: AutocompleteContext):
                    'value': 'error'}]
 
     await ctx.send(choices=fields)
+
+# -------------------------------------------------------------------------------------------------------------------- #
+"""view_report"""
+
+
+@base_command.subcommand(sub_cmd_name="view_report",
+                         sub_cmd_description="Check the report for a past workout session")
+@slash_option(name="year", description="What year did this session take place? (or input the word latest)",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="month", description="What month did this session take place?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="day", description="What day did this session take place?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="report_to_view", description="What report would you like to view?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
+              opt_type=OptionType.BOOLEAN, required=False)
+async def view_report(ctx: SlashContext, year, month, day, report_to_view, show_everyone=False):
+    msg = view_report_main(user=ctx.author,
+                           report_id=report_to_view)
+
+    await ctx.send(msg, ephemeral=not show_everyone)
+
+# -------------------------------------------------------------------------------------------------------------------- #
+"""view_workout"""
+
+
+@base_command.subcommand(sub_cmd_name="view_workout",
+                         sub_cmd_description="Get information about a scheduled workout routine")
+@slash_option(name="workout_name", description="Which workout would you like to view?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
+              opt_type=OptionType.BOOLEAN, required=False)
+async def view_workout(ctx: SlashContext, workout_name, show_everyone=False):
+    msg = view_workout_main(user=ctx.author,
+                            workout_id=workout_name)
+
+    await ctx.send(msg, ephemeral=not show_everyone)
 
 # -------------------------------------------------------------------------------------------------------------------- #
 """Common-use autocompletes"""
@@ -371,6 +331,7 @@ async def days_of_the_week_autocomplete(ctx: AutocompleteContext):
 
 @report_scheduled.autocomplete("workout_name")
 @edit_workout.autocomplete("workout_name")
+@view_workout.autocomplete("workout_name")
 async def user_workouts_autocomplete(ctx: AutocompleteContext):
     """Fetches a list of all of a user's scheduled workouts.
 
@@ -383,6 +344,86 @@ async def user_workouts_autocomplete(ctx: AutocompleteContext):
         workouts = [{'name': 'There are no workouts reported under your name. Get swole, then try again',
                      'value': 'error'}]
     await ctx.send(choices=workouts)
+
+
+@edit_report.autocomplete("year")
+@view_report.autocomplete("year")
+async def reports_years_autocomplete(ctx: AutocompleteContext):
+    """Fetches a list of years in which the user has completed workout sessions.
+
+    :param ctx: (object) contains information about the interaction
+    """
+    # Fetch a list of years in which the user has submitted reports
+    try:
+        years_list = reports_years_quickfetch(userid=int(ctx.author_id))
+    except KeyError:
+        years_list = [{'name': 'There are no workouts reported under your name. Get swole, then try again',
+                       'value': 'error'}]
+
+    await ctx.send(choices=years_list)
+
+
+@edit_report.autocomplete("month")
+@view_report.autocomplete("month")
+async def reports_months_autocomplete(ctx: AutocompleteContext):
+    """Fetches a list of months within the selected year in which the user has completed workout sessions.
+
+    :param ctx: (object) contains information about the interaction
+    """
+    # Fetch a list of months in the selected year in which the user has submitted reports
+    try:
+        int(ctx.args[0])
+        months_list = reports_months_quickfetch(userid=int(ctx.author_id),
+                                                year=ctx.args[0])
+    except:
+        months_list = [{'name': 'Error: Please delete the command and try again. '
+                                'Make sure you fill in all fields in order.',
+                        'value': 'error'}]
+
+    await ctx.send(choices=months_list)
+
+
+@edit_report.autocomplete("day")
+@view_report.autocomplete("day")
+async def reports_days_autocomplete(ctx: AutocompleteContext):
+    """Fetches a list of days within the selected year and month in which the user has completed workout sessions.
+
+    :param ctx: (object) contains information about the interaction
+    """
+    # Fetch a list of days in the selected month of the selected year in which the user has submitted reports
+    try:
+        int(ctx.args[1])
+        days_list = reports_days_quickfetch(userid=int(ctx.author_id),
+                                            year=ctx.args[0],
+                                            month=ctx.args[1])
+    except:
+        days_list = [{'name': 'Error: Please delete the command and try again. '
+                              'Make sure you fill in all fields in order.',
+                      'value': 'error'}]
+
+    await ctx.send(choices=days_list)
+
+
+@edit_report.autocomplete("report_to_edit")
+@view_report.autocomplete("report_to_view")
+async def reports_by_day_autocomplete(ctx: AutocompleteContext):
+    """Fetches a list of reports made by the user around the specified day. Includes the day before and the day
+    after to smooth out any memory/time zone issues.
+
+    :param ctx: (object) contains information about the interaction
+    """
+    # Fetch a list of all the reports the user has made on the selected day, and on surrounding days if convenient
+    try:
+        int(ctx.args[2])
+        reports = reports_by_day_quickfetch(userid=int(ctx.author_id),
+                                            year=ctx.args[0],
+                                            month=ctx.args[1],
+                                            day=ctx.args[2])
+    except:
+        reports = [{'name': 'Error: Please delete the command and try again. '
+                            'Make sure you fill in all fields in order.',
+                    'value': 'error'}]
+    await ctx.send(choices=reports)
 
 # -------------------------------------------------------------------------------------------------------------------- #
 

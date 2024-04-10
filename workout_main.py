@@ -219,3 +219,59 @@ def edit_report_main(user, report_id, field, new_value):
                f"edited. The value for {field} has been changed to {new_value}")
 
     return message
+
+
+def view_report_main(user, report_id):
+    """Given a specific report, gathers all the information about that report and returns it to Discord.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param report_id: (str) the id (also the unix time of creation) of the report to be viewed
+    :return: (str) a message to be returned to Discord containing info about the specified report
+    """
+    # Get the report and compile its data into strings
+    report = get_all_reports(str(user.id))[report_id]
+    report_data = [f"{field}: {value}" for field, value in report.items()]
+
+    # Generate info needed to finish the message:
+    workout_name = report['workout_name']
+    if 'completion' in report:
+        scheduled_or_unscheduled = 'scheduled'
+    else:
+        scheduled_or_unscheduled = 'unscheduled'
+    user_nick = user.display_name
+    timestamp = f"<t:{int(float(report_id))}:f>"
+
+    message = (f"Here is all the data from the report on the {scheduled_or_unscheduled} workout session "
+               f"'{workout_name}' which was done by {user_nick} on {timestamp}:\n") + '\n'.join(report_data)
+
+    return message
+
+
+def view_workout_main(user, workout_id):
+    """Given a specific report, gathers all the information about that report and returns it to Discord.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param workout_id: (str) the id (also the unix time of creation) of the workout to be viewed
+    :return: (str) a message to be returned to Discord containing info about the specified workout and its reports
+    """
+    # Get the workout and compile its data into strings
+    workout = read_json()['users'][str(user.id)]['scheduled_workout']
+    reports = workout['reports']
+    del workout['reports']
+    workout_data = [f"{field}: {value}" for field, value in workout.items()]
+
+    # Compile the reports into strings, too
+    reports_list = [f"<t:{int(float(report))}:f>:"
+                    + '\n'.join([f"{field}: {value}" for field, value in reports[report].items()])
+                    for report in reports]
+
+    # Generate info needed to finish the message:
+    workout_name = workout['workout_name']
+    user_nick = user.display_name
+    timestamp = f"<t:{int(float(workout_id))}:f>"
+
+    message = ((f"Here is everything there is to know about the workout routine "
+               f"'{workout_name}' which was designed by {user_nick} on {timestamp}:\n") + '\n'.join(workout_data)
+               + '\n\n'.join(reports_list))
+
+    return message
