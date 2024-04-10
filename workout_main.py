@@ -228,9 +228,8 @@ def view_report_main(user, report_id):
     :param report_id: (str) the id (also the unix time of creation) of the report to be viewed
     :return: (str) a message to be returned to Discord containing info about the specified report
     """
-    # Get the report and compile its data into strings
+    # Get the report
     report = get_all_reports(str(user.id))[report_id]
-    report_data = [f"{field}: {value}" for field, value in report.items()]
 
     # Generate info needed to finish the message:
     workout_name = report['workout_name']
@@ -246,6 +245,9 @@ def view_report_main(user, report_id):
         image = read_json()['users'][str(user.id)]['scheduled_workout'][report['workout_id']]['img_url']
         if image:
             image_str = image
+
+    # Compile the report data into strings
+    report_data = [f"{field}: {value}" for field, value in report.items()]
 
     message = ((f"Here is all the data from the report on the {scheduled_or_unscheduled} workout session "
                f"'{workout_name}' which was done by {user_nick} on {timestamp}:\n")
