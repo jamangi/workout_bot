@@ -255,13 +255,13 @@ def view_workout_main(user, workout_id):
     :return: (str) a message to be returned to Discord containing info about the specified workout and its reports
     """
     # Get the workout and compile its data into strings
-    workout = read_json()['users'][str(user.id)]['scheduled_workout']
+    workout = read_json()['users'][str(user.id)]['scheduled_workout'][workout_id]
     reports = workout['reports']
     del workout['reports']
     workout_data = [f"{field}: {value}" for field, value in workout.items()]
 
     # Compile the reports into strings, too
-    reports_list = [f"<t:{int(float(report))}:f>:"
+    reports_list = [f"<t:{int(float(report))}:f>:\n"
                     + '\n'.join([f"{field}: {value}" for field, value in reports[report].items()])
                     for report in reports]
 
@@ -272,6 +272,6 @@ def view_workout_main(user, workout_id):
 
     message = ((f"Here is everything there is to know about the workout routine "
                f"'{workout_name}' which was designed by {user_nick} on {timestamp}:\n") + '\n'.join(workout_data)
-               + '\n\n'.join(reports_list))
+               + "\n\n**Reports**:\n" + '\n\n'.join(reports_list))
 
     return message
