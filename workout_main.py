@@ -294,9 +294,10 @@ def view_workout_main(user, workout_id):
     workout_name = workout['workout_name']
     user_nick = user.display_name
     timestamp = f"<t:{int(float(workout_id))}:f>"
+    num_reports = len(reports)
 
     message = ((f"Here is everything there is to know about the workout routine "
                f"'{workout_name}' which was designed by {user_nick} on {timestamp}:\n") + '\n'.join(workout_data)
-               + "\n\n**Reports**:\n" + '\n\n'.join(reports_list))
+               + f"\n\n**{num_reports}** Reports:\n" + '\n\n'.join(reports_list))
 
     return message
