@@ -96,7 +96,7 @@ def add_scheduled_workout(user_id, workout_name, days_scheduled, muscle_group=No
 
 
 def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_used=None,
-                            tutorial_url=None, img_url=None):
+                            tutorial_url=None, img_url=None, preset_report_id=None):
     """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
 
     :param user_id: (int) the Discord ID of the user reporting the workout
@@ -105,9 +105,13 @@ def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_us
     :param weights_used: (str) a description of the weights used in this workout, if any
     :param tutorial_url: (str) a link to a tutorial that shows how to do this workout properly
     :param img_url: (str) a link to an image that can be used in messages about this workout
+    :param preset_report_id: (str) if this is not None, use this value as the report_id
     """
     filename = config("FILENAME")
-    time_now = datetime.now().timestamp()
+    if preset_report_id:
+        time_now = preset_report_id
+    else:
+        time_now = datetime.now().timestamp()
 
     with open(filename, 'r') as file:
         json_data = json.load(file)
