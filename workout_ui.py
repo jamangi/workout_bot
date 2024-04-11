@@ -333,21 +333,22 @@ async def delete_report(ctx: SlashContext, year, month, day, report_to_delete, a
                          sub_cmd_description="Delete a scheduled workout routine and, optionally, its report history")
 @slash_option(name="workout_name", description="Which workout would you like to delete?",
               opt_type=OptionType.STRING, required=True, autocomplete=True)
-@slash_option(name="delete_report_history", description="Would you like to delete the report history, or save the "
+@slash_option(name="save_report_history", description="Would you like to delete the report history, or save the "
                                                         "reports for this workout as unscheduled reports?",
               opt_type=OptionType.STRING, required=True,
-              choices=[SlashCommandChoice(name='Yes', value=True),
-                       SlashCommandChoice(name='No', value=False)])
+              choices=[SlashCommandChoice(name="I'd like to save the reports as unscheduled workouts", value=True),
+                       SlashCommandChoice(name="I'd like to delete all the reports for this workout", value=False)])
 @slash_option(name="are_you_sure", description="Are you absolutely sure you want to delete this report?",
               opt_type=OptionType.STRING, required=True,
               choices=[SlashCommandChoice(name='No', value=False),
                        SlashCommandChoice(name='Yes', value=True)])
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
-async def delete_workout(ctx: SlashContext, workout_name, are_you_sure, show_everyone=False):
+async def delete_workout(ctx: SlashContext, workout_name, save_report_history, are_you_sure, show_everyone=False):
     if are_you_sure:
         msg = delete_workout_main(user=ctx.author,
-                                  workout_id=workout_name)
+                                  workout_id=workout_name,
+                                  save=save_report_history)
     else:
         msg = "Because you said you are not sure you want to delete the workout, it has **not** been deleted."
 

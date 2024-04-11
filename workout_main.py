@@ -1,5 +1,5 @@
 from workout_backend import (read_json, edit_value, add_user, add_scheduled_workout,
-                             add_unscheduled_workout, add_report, get_all_reports)
+                             add_unscheduled_workout, add_report, get_all_reports, delete_from_dict)
 
 
 def schedule_routine_main(user, workout_name, muscle_group, weights_used, tutorial_url, image_url, workout_day_1,
@@ -299,5 +299,82 @@ def view_workout_main(user, workout_id):
     message = ((f"Here is everything there is to know about the workout routine "
                f"'{workout_name}' which was designed by {user_nick} on {timestamp}:\n") + '\n'.join(workout_data)
                + f"\n\n**{num_reports}** Reports:\n" + '\n\n'.join(reports_list))
+
+    return message
+
+
+def delete_report_main(user, report_id):
+    """Deletes the specified report from the json file
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param report_id: (str) the id (also the unix time of creation) of the report to be deleted
+    :return: (str) a confirmation message to be sent to Discord
+    """
+    user_id = str(user.id)
+    # Get the report info so we can decide what to delete and how
+    report = get_all_reports(str(user.id))[report_id]
+
+    # Generate info:
+    workout_name = report['workout_name']
+    workout_id = report['workout_id']
+    if 'completion' in report:
+        scheduled_or_unscheduled = 'scheduled'
+    else:
+        scheduled_or_unscheduled = 'unscheduled'
+    user_nick = user.display_name
+    timestamp = f"<t:{int(float(report_id))}:f>"
+
+    if scheduled_or_unscheduled == 'unscheduled':
+        delete_from_dict(user_id, report_unixid=report_id)
+    elif scheduled_or_unscheduled == 'scheduled':
+        delete_from_dict(user_id, workout_unixid=workout_id, report_unixid=report_id)
+    else:
+        raise ValueError("Something went wrong. Make sure 'scheduled_or_unscheduled is either 'scheduled' or "
+                         "'unscheduled'.")
+
+    message = (f"The report for the {scheduled_or_unscheduled} workout session "
+               f"'{workout_name}', which was done by {user_nick} on {timestamp}, has been successfully deleted.")
+
+    return message
+
+
+def delete_workout_main(user, workout_id, save):
+    """Deletes the specified workout from the json file. The user can specify through the 'save' variable whether
+    they want the reports to be deleted, too, or whether they should be listed as unscheduled workouts, instead.
+
+    :param user: (object) a Discord object containing information about the person who used the slash command
+    :param workout_id: (str) the id (also the unix time of creation) of the workout to be deleted
+    :param save: (bool) If True, save all reports for the specified workout as unscheduled workouts after
+    the workout has been deleted. If false, just delete all the workout's reports.
+    :return: (str) a confirmation message to be sent to Discord
+    """
+    user_id = str(user.id)
+    # Get the workout and all its data
+    workout = read_json()['users'][str(user.id)]['scheduled_workout'][workout_id]
+    reports = workout['reports']
+
+    # Generate info
+    workout_name = workout['workout_name']
+    user_nick = user.display_name
+    timestamp = f"<t:{int(float(workout_id))}:f>"
+
+    if save:
+        # Collect all the reports from the workout and save them as unscheduled workouts
+        for report_id in reports:
+            add_unscheduled_workout(user_id,
+                                    workout_name,
+                                    muscle_group=reports[report_id]['muscle_group'],
+                                    weights_used=reports[report_id]['weights_used'],
+                                    tutorial_url=reports[report_id]['tutorial_url'],
+                                    img_url=reports[report_id]['img_url'],
+                                    preset_report_id=report_id)
+
+    # Delete the workout from the json file
+    delete_from_dict(user_id, workout_unixid=workout_id)
+
+    message = (f"The workout routine called '{workout_name}', which was designed by {user_nick} on {timestamp}, "
+               f"has been successfully deleted.\n")
+    if save:
+        message += "The workout reports have been saved as unscheduled reports."
 
     return message
