@@ -6,8 +6,9 @@ from interactions.api.events import CommandError
 import os
 from json import dump as json_dump
 
-from workout_main import (schedule_routine_main, report_scheduled_main, report_unscheduled_main, edit_workout_main,
-                          edit_report_main, view_report_main, view_workout_main)
+from workout_main import (schedule_routine_main, report_scheduled_main, report_unscheduled_main,
+                          edit_workout_main, edit_report_main, view_report_main, view_workout_main,
+                          delete_report_main, delete_workout_main)
 from workout_quickfetches import (reports_years_quickfetch, reports_months_quickfetch, reports_days_quickfetch,
                                   reports_by_day_quickfetch, fields_in_report_quickfetch, workouts_quickfetch)
 
@@ -296,6 +297,63 @@ async def view_workout(ctx: SlashContext, workout_name, show_everyone=False):
     await ctx.send(msg, ephemeral=not show_everyone)
 
 # -------------------------------------------------------------------------------------------------------------------- #
+"""delete_report"""
+
+
+@base_command.subcommand(sub_cmd_name="delete_report",
+                         sub_cmd_description="Delete the report for a past workout session")
+@slash_option(name="year", description="What year did this session take place? (or input the word latest)",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="month", description="What month did this session take place?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="day", description="What day did this session take place?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="report_to_delete", description="Which report would you like to delete?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="are_you_sure", description="Are you absolutely sure you want to delete this report?",
+              opt_type=OptionType.STRING, required=True,
+              choices=[SlashCommandChoice(name='No', value=False),
+                       SlashCommandChoice(name='Yes', value=True)])
+@slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
+              opt_type=OptionType.BOOLEAN, required=False)
+async def delete_report(ctx: SlashContext, year, month, day, report_to_delete, are_you_sure, show_everyone=False):
+    if are_you_sure:
+        msg = delete_report_main(user=ctx.author,
+                                 report_id=report_to_delete)
+    else:
+        msg = "Because you said you are not sure you want to delete the report, it has **not** been deleted."
+
+    await ctx.send(msg, ephemeral=not show_everyone)
+
+# -------------------------------------------------------------------------------------------------------------------- #
+"""delete_workout"""
+
+
+@base_command.subcommand(sub_cmd_name="delete_workout",
+                         sub_cmd_description="Delete a scheduled workout routine and, optionally, its report history")
+@slash_option(name="workout_name", description="Which workout would you like to delete?",
+              opt_type=OptionType.STRING, required=True, autocomplete=True)
+@slash_option(name="delete_report_history", description="Would you like to delete the report history, or save the "
+                                                        "reports for this workout as unscheduled reports?",
+              opt_type=OptionType.STRING, required=True,
+              choices=[SlashCommandChoice(name='Yes', value=True),
+                       SlashCommandChoice(name='No', value=False)])
+@slash_option(name="are_you_sure", description="Are you absolutely sure you want to delete this report?",
+              opt_type=OptionType.STRING, required=True,
+              choices=[SlashCommandChoice(name='No', value=False),
+                       SlashCommandChoice(name='Yes', value=True)])
+@slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
+              opt_type=OptionType.BOOLEAN, required=False)
+async def delete_workout(ctx: SlashContext, workout_name, are_you_sure, show_everyone=False):
+    if are_you_sure:
+        msg = delete_workout_main(user=ctx.author,
+                                  workout_id=workout_name)
+    else:
+        msg = "Because you said you are not sure you want to delete the workout, it has **not** been deleted."
+
+    await ctx.send(msg, ephemeral=not show_everyone)
+
+# -------------------------------------------------------------------------------------------------------------------- #
 """Common-use autocompletes"""
 
 
@@ -348,6 +406,7 @@ async def user_workouts_autocomplete(ctx: AutocompleteContext):
 
 @edit_report.autocomplete("year")
 @view_report.autocomplete("year")
+@delete_report.autocomplete("year")
 async def reports_years_autocomplete(ctx: AutocompleteContext):
     """Fetches a list of years in which the user has completed workout sessions.
 
@@ -365,6 +424,7 @@ async def reports_years_autocomplete(ctx: AutocompleteContext):
 
 @edit_report.autocomplete("month")
 @view_report.autocomplete("month")
+@delete_report.autocomplete("month")
 async def reports_months_autocomplete(ctx: AutocompleteContext):
     """Fetches a list of months within the selected year in which the user has completed workout sessions.
 
@@ -385,6 +445,7 @@ async def reports_months_autocomplete(ctx: AutocompleteContext):
 
 @edit_report.autocomplete("day")
 @view_report.autocomplete("day")
+@delete_report.autocomplete("day")
 async def reports_days_autocomplete(ctx: AutocompleteContext):
     """Fetches a list of days within the selected year and month in which the user has completed workout sessions.
 
@@ -406,6 +467,7 @@ async def reports_days_autocomplete(ctx: AutocompleteContext):
 
 @edit_report.autocomplete("report_to_edit")
 @view_report.autocomplete("report_to_view")
+@delete_report.autocomplete("report_to_view")
 async def reports_by_day_autocomplete(ctx: AutocompleteContext):
     """Fetches a list of reports made by the user around the specified day. Includes the day before and the day
     after to smooth out any memory/time zone issues.
