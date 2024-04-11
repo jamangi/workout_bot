@@ -61,7 +61,7 @@ def schedule_routine_main(user, workout_name, muscle_group, weights_used, tutori
     # Create sentences about the tutorial and image urls
     tutorial_msg = ''
     if tutorial_url:
-        tutorial_msg = f"A tutorial can be found at {tutorial_url}"
+        tutorial_msg = f"A tutorial can be found at `{tutorial_url}`"
     image_msg = ''
     if image_url:
         image_msg = image_url
