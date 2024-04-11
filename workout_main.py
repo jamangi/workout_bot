@@ -344,8 +344,8 @@ def delete_workout_main(user, workout_id, save):
 
     :param user: (object) a Discord object containing information about the person who used the slash command
     :param workout_id: (str) the id (also the unix time of creation) of the workout to be deleted
-    :param save: (bool) If True, save all reports for the specified workout as unscheduled workouts after
-    the workout has been deleted. If false, just delete all the workout's reports.
+    :param save: (str) If 'True', save all reports for the specified workout as unscheduled workouts after
+    the workout has been deleted. If 'False', just delete all the workout's reports.
     :return: (str) a confirmation message to be sent to Discord
     """
     user_id = str(user.id)
@@ -358,7 +358,7 @@ def delete_workout_main(user, workout_id, save):
     user_nick = user.display_name
     timestamp = f"<t:{int(float(workout_id))}:f>"
 
-    if save:
+    if save == 'True':
         # Collect all the reports from the workout and save them as unscheduled workouts
         for report_id in reports:
             add_unscheduled_workout(user_id,
