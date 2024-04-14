@@ -141,15 +141,18 @@ async def report_scheduled(ctx: SlashContext, workout_name, completion, comment=
               opt_type=OptionType.STRING, required=False)
 @slash_option(name="show_everyone", description="Want the post to be visible to everyone?",
               opt_type=OptionType.BOOLEAN, required=False)
+@slash_option(name="comment", description="Is there anything you'd like to note about how the workout session went?",
+              opt_type=OptionType.STRING, required=False)
 async def report_unscheduled(ctx: SlashContext, workout_name,
                              muscle_group=None, weights_used=None, tutorial_url=None, image_url=None,
-                             show_everyone=False):
+                             show_everyone=False, comment=None):
     msg = report_unscheduled_main(user=ctx.author,
                                   workout_name=workout_name,
                                   muscle_group=muscle_group,
                                   weights_used=weights_used,
                                   tutorial_url=tutorial_url,
-                                  image_url=image_url)
+                                  image_url=image_url,
+                                  comment=comment)
 
     await ctx.send(msg, ephemeral=not show_everyone)
 

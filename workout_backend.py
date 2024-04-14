@@ -96,7 +96,7 @@ def add_scheduled_workout(user_id, workout_name, days_scheduled, muscle_group=No
 
 
 def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_used=None,
-                            tutorial_url=None, img_url=None, preset_report_id=None):
+                            tutorial_url=None, img_url=None, preset_report_id=None, comment=None):
     """Adds an impromptu workout to the unscheduled_workout dict within the user's entry in the users dict in the json.
 
     :param user_id: (int) the Discord ID of the user reporting the workout
@@ -106,6 +106,7 @@ def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_us
     :param tutorial_url: (str) a link to a tutorial that shows how to do this workout properly
     :param img_url: (str) a link to an image that can be used in messages about this workout
     :param preset_report_id: (str) if this is not None, use this value as the report_id
+    :param comment: (str) any comment about the workout optionally left by the user
     """
     filename = config("FILENAME")
     if preset_report_id:
@@ -120,7 +121,8 @@ def add_unscheduled_workout(user_id, workout_name, muscle_group=None, weights_us
                                                                          'muscle_group': muscle_group,
                                                                          'weights_used': weights_used,
                                                                          'tutorial_url': tutorial_url,
-                                                                         'img_url': img_url}
+                                                                         'img_url': img_url,
+                                                                         'comment': comment}
 
     with open(filename, 'w') as file:
         json.dump(json_data, file, indent=4)
