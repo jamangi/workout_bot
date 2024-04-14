@@ -130,6 +130,8 @@ def reports_by_day_quickfetch(userid, year, month, day):
     month = int(month)
     day = int(day)
     range_start = datetime(year, month, day-1).timestamp()
+    day_start = datetime(year, month, day).timestamp()
+    day_end = datetime(year, month, day+1).timestamp()
     range_end = datetime(year, month, day+2).timestamp()
 
     # Get the dates of all the reports the user has submitted this month
@@ -138,8 +140,13 @@ def reports_by_day_quickfetch(userid, year, month, day):
     report_dates.sort()
 
     # Format the list of reports the way autocomplete likes -- a list of dicts like so: {'name': name, 'value': value}
-    reports_list = [{'name': f"{all_reports[str(report_id)]['workout_name']} - {months_hash[month]} {day}, {year}",
-                     'value': report_id} for report_id in report_dates]
+    yesterday_list = [{'name': f"{all_reports[str(report_id)]['workout_name']} - {months_hash[month]} {day-1}, {year}",
+                       'value': report_id} for report_id in report_dates if report_id < day_start]
+    today_list = [{'name': f"{all_reports[str(report_id)]['workout_name']} - {months_hash[month]} {day}, {year}",
+                   'value': report_id} for report_id in report_dates if day_start <= report_id < day_end]
+    tomorrow_list = [{'name': f"{all_reports[str(report_id)]['workout_name']} - {months_hash[month]} {day+1}, {year}",
+                      'value': report_id} for report_id in report_dates if day_end <= report_id]
+    reports_list = yesterday_list + today_list + tomorrow_list
 
     return reports_list
 
