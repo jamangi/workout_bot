@@ -37,9 +37,8 @@ def edit_value(user_id, field, new_value,
             raise ValueError('In edit_value, scheduled_or_unscheduled must be either None or '
                              '"scheduled_workout" or "unscheduled_workout".')
         if not report_unixid:
-            raise ValueError('If scheduled_or_unscheduled is given as an argument, a report_unixid must be '
-                             'supplied to clarify which report is being referred to.')
-        if not workout_unixid:
+            json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid][field] = new_value
+        elif not workout_unixid:
             json_data['users'][user_id][scheduled_or_unscheduled][report_unixid][field] = new_value
         else:
             json_data['users'][user_id][scheduled_or_unscheduled][workout_unixid]['reports'][report_unixid][field] \
