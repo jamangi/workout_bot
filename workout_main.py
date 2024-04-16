@@ -113,7 +113,7 @@ def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tuto
         add_user(user_id, user.display_name)
 
     # Add the report to the json database
-    add_unscheduled_workout(user_id, workout_name, muscle_group, weights_used, tutorial_url, image_url, comment)
+    add_unscheduled_workout(user_id, workout_name, muscle_group, weights_used, tutorial_url, image_url, comment=comment)
 
     message = (f"Your report for this scheduled workout has been logged:\n"
                f"Workout name: {workout_name}\n"
