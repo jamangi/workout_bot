@@ -170,7 +170,8 @@ async def report_unscheduled(ctx: SlashContext, workout_name,
                        SlashCommandChoice(name='muscle groups', value='muscle_groups'),
                        SlashCommandChoice(name='weights used', value='weights_used'),
                        SlashCommandChoice(name='tutorial url', value='tutorial_url'),
-                       SlashCommandChoice(name='image url', value='img_url')])
+                       SlashCommandChoice(name='image url', value='img_url'),
+                       SlashCommandChoice(name='workout schedule', value='workout_schedule')])
 @slash_option(name="new_value", description="What should the field be changed to? (leave blank if you only want to "
                                             "change the date)", opt_type=OptionType.STRING, required=False)
 @slash_option(name="new_schedule_day_1", description="Want to change the schedule? Input it here, or leave this "

@@ -86,7 +86,12 @@ def report_scheduled_main(user, workout_id, completion, comment):
     # Add the report to the json database
     add_report(user_id, completion, comment=comment, workout_id=workout_id)
 
-    message = (f"Your report for this scheduled workout has been logged:\n"
+    # Get the workout's name
+    json_data = read_json()
+    workout_name = json_data['users'][str(user_id)]['scheduled_workout'][workout_id]['workout_name']
+
+    # Create the message to be sent back to Discord
+    message = (f"Your report for this scheduled workout, {workout_name}, has been logged:\n"
                f"Completion: {completion}\n"
                f"Comment: {comment}")
 
@@ -115,7 +120,7 @@ def report_unscheduled_main(user, workout_name, muscle_group, weights_used, tuto
     # Add the report to the json database
     add_unscheduled_workout(user_id, workout_name, muscle_group, weights_used, tutorial_url, image_url, comment=comment)
 
-    message = (f"Your report for this scheduled workout has been logged:\n"
+    message = (f"Your report for this unscheduled workout has been logged:\n"
                f"Workout name: {workout_name}\n"
                f"Muscle group(s) used: {muscle_group}\n"
                f"Comment: {comment}\n"
@@ -148,7 +153,8 @@ def edit_workout_main(user, workout_id, field, new_value,
                     new_schedule_day_4, new_schedule_day_5, new_schedule_day_6, new_schedule_day_7]
 
     # Return an error if no changes were requested
-    if len(workout_days) == 0 and not new_value:
+    days_scheduled = [day for day in workout_days if day is not None]
+    if len(days_scheduled) == 0 and not new_value:
         raise ValueError("You didn't actually request any changes to the workout... Make sure to specify them!")
 
     # If what's being changed is the workout name, make sure it's not too long
@@ -160,11 +166,12 @@ def edit_workout_main(user, workout_id, field, new_value,
         edit_value(user_id, field, new_value, scheduled_or_unscheduled='scheduled_workout', workout_unixid=workout_id)
 
     # Change the schedule, too, if requested
-    days_scheduled = [day for day in workout_days if day is not None]
     if len(days_scheduled) > 0:
         edit_value(user_id, 'days_scheduled', days_scheduled, 'scheduled_workout', workout_unixid=workout_id)
 
     # Create a sentence about the workout's new schedule if it was changed
+    json_data = read_json()
+    workout_name = json_data['users'][str(user_id)]['scheduled_workout'][workout_id]['workout_name']
     sched_msg = ''
     if len(days_scheduled) > 0:
         if len(days_scheduled) > 1:
@@ -175,7 +182,8 @@ def edit_workout_main(user, workout_id, field, new_value,
                      f"on {workout_schedule_string}.")
 
     # Generate a message to be sent back to Discord
-    message = f"The requested change has been made to your scheduled workout."
+    message = (f"The requested change has been made to your scheduled workout, {workout_name}, which was created "
+               f"on <t:{int(float(workout_id))}:f>.")
     if new_value:
         message += f" {field} has been changed to {new_value}."
     message += sched_msg
